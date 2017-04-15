@@ -1,35 +1,191 @@
 <!doctype html>
 <html>
-    <head>
-        <meta charset="utf-8"/>
-        <title>Hackathon 2017</title>
 
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-        <!-- Latest compiled and minified CSS -->
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-    </head>
-    <body>
-        <div class="container">
-            <div class="row">
-                <h1>RGU Hackathon 2017</h1>
-                <p>In 24 hours, we plan to create a service that allows speech impaired individuals to use the voice command service in the amazon echo by using sign language input from the Leap motion controller.</p>
-            </div>
-            <div class="row">
-                <h2>Output</h2>
-                <p>Output here...</p>
-            </div>
-            <div class="row text-center">
-                <h2>Uncertain Character Choice</h2>
-                <div class="col-xs-4">
-                    L
-                </div>
-                <div class="col-xs-4">
-                    E
-                </div>
-                <div class="col-xs-4">
-                    T
+<head>
+    <meta charset="utf-8" />
+    <title>Hackathon 2017</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+        crossorigin="anonymous">
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+        crossorigin="anonymous"></script>
+    <script src="https://www.gstatic.com/firebasejs/3.7.8/firebase.js"></script>
+    <script>
+        // Initialize Firebase
+        var config = {
+            apiKey: "AIzaSyDygt7mVDzonfFMSWezxvdqvfg7g0qvY2k",
+            authDomain: "hackin17-b943a.firebaseapp.com",
+            databaseURL: "https://hackin17-b943a.firebaseio.com",
+            projectId: "hackin17-b943a",
+            storageBucket: "hackin17-b943a.appspot.com",
+            messagingSenderId: "351185185531"
+        };
+        firebase.initializeApp(config);
+
+        var passmeonJSON
+        var dbref = firebase.database().ref().child('leapSon');
+        dbref.on('value', snap => passmeonJSON = snap.val());
+
+        var ws;
+        var paused = false;
+        var pauseOnGesture = false;
+        var focusListener;
+        var blurListener;
+        var name;
+
+        // Support both the WebSocket and MozWebSocket objects
+        if ((typeof (WebSocket) == 'undefined') &&
+            (typeof (MozWebSocket) != 'undefined')) {
+            WebSocket = MozWebSocket;
+        }
+
+        // Create the socket with event handlers
+        function init() {
+            // Create and open the socket
+            ws = new WebSocket("ws://localhost:6437/v6.json");
+
+            // On successful connection
+            ws.onopen = function (event) {
+                var enableMessage = JSON.stringify({ enableGestures: true });
+                ws.send(enableMessage); // Enable gestures
+                ws.send(JSON.stringify({ focused: true })); // claim focus
+
+                focusListener = window.addEventListener('focus', function (e) {
+                    ws.send(JSON.stringify({ focused: true })); // claim focus
+                });
+
+                blurListener = window.addEventListener('blur', function (e) {
+                    ws.send(JSON.stringify({ focused: false })); // relinquish focus
+                });
+
+                document.getElementById("main").style.visibility = "visible";
+                document.getElementById("connection").innerHTML = "WebSocket connection open!";
+            };
+
+            // On message received
+            ws.onmessage = function (event) {
+                if (!paused) {
+                    var obj = JSON.parse(event.data);
+                    var str = JSON.stringify(obj, undefined, 2);
+                    obj["name"] = document.getElementById("input1").value;
+                    document.getElementById("output").innerHTML = '<pre>' + str + '</pre>';
+                    if (pauseOnGesture && obj.gestures.length > 0) {
+                        togglePause();
+                    }
+                    passmeonJSON = obj;
+                }
+            };
+
+            // On socket close
+            ws.onclose = function (event) {
+                ws = null;
+                window.removeListener("focus", focusListener);
+                window.removeListener("blur", blurListener);
+                document.getElementById("main").style.visibility = "hidden";
+                document.getElementById("connection").innerHTML = "WebSocket connection closed";
+            }
+
+            // On socket error
+            ws.onerror = function (event) {
+                alert("Received error");
+            };
+        }
+
+        function togglePause() {
+            paused = !paused;
+
+            if (paused) {
+                document.getElementById("pause").innerText = "Resume";
+            } else {
+                document.getElementById("pause").innerText = "Pause";
+            }
+        }
+
+        function pauseForGestures() {
+            if (document.getElementById("pauseOnGesture").checked) {
+                pauseOnGesture = true;
+            } else {
+                pauseOnGesture = false;
+            }
+        }
+
+        function sendToFire() {
+            dbref.push(passmeonJSON);
+            alert("posted to the fire!");
+            document.getElementById('input1').value = "";
+            togglePause();
+        }
+    </script>
+</head>
+
+<body onload="init();">
+    <div class="container">
+        <div class="row">
+            <h1>RGU Hackathon 2017</h1>
+            <p>In 24 hours, we plan to create a service that allows speech impaired individuals to use the voice command service
+                in the amazon echo by using sign language input from the Leap motion controller.</p>
+        </div>
+
+        <div class="row">
+            <h2>Input - Gesture to Firebase</h2>
+            <ol>
+                <li>
+                    Put hand in desired position over leap motion
+                </li>
+                <li>
+                    Click "Pause" then enter gesture name in text box
+                </li>
+                <li>
+                    If preview looks good, click "Send!"
+                </li>
+                <li>
+                    Repeat process! :)
+                </li>
+            </ol>
+
+
+            <button class="btn btn-primary" id="pause" onclick="togglePause()">Pause</button>
+            <button class="btn btn-primary" id="send" onclick="sendToFire()">Send!</button>
+            <p>
+                Set Gesture Label:
+            </p>
+            <input type="text" id="input1"></input>
+            <div id="connection">WebSocket not connected</div>
+            <a class="btn btn-primary" role="button" data-toggle="collapse" href="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+  Preview
+</a>
+
+            <div class="collapse" id="collapseExample">
+                <div class="well">
+                    <div id="main">
+                        <h3>JSON Frame data:</h3>
+                        <div id="output"></div>
+                    </div>
                 </div>
             </div>
         </div>
-    </body>
+        <div class="row">
+            <h2>Output</h2>
+            <p>Output here...</p>
+        </div>
+        <div class="row text-center">
+            <h2>Uncertain Character Choice</h2>
+            <div class="col-xs-4">
+                L
+            </div>
+            <div class="col-xs-4">
+                E
+            </div>
+            <div class="col-xs-4">
+                T
+            </div>
+        </div>
+    </div>
+    </div>
+</body>
+
 </html>
