@@ -69,8 +69,9 @@ function init() {
     ws.onmessage = function(event) {
         if (!paused) {
             var obj = JSON.parse(event.data);
+            var str = JSON.stringify(obj, undefined, 2);
             obj["name"] = document.getElementById("input1").value;
-            document.getElementById("output").innerHTML = '<pre>' + obj + '</pre>';
+            document.getElementById("output").innerHTML = '<pre>' + str + '</pre>';
             if (pauseOnGesture && obj.gestures.length > 0) {
                 togglePause();
             }
@@ -113,15 +114,35 @@ function pauseForGestures() {
 
 function sendToFire() {
   dbref.push(passmeonJSON);
+  alert("posted to the fire!");
+  document.getElementById('input1').value = "";
+  togglePause();
 }
 </script>
 </head>
 <body onload="init();">
-<h1>Leap WebSocket JSON Viewer</h1>
+<h1>Gesture to Firebase</h1>
+<ol>
+    <li>
+      Put hand in desired position over leap motion
+    </li>
+    <li>
+      Click "Pause" then enter gesture name in text box
+    </li>
+    <li>
+      If preview looks good, click "Send!"
+    </li>
+    <li>
+      Repeat process! :)
+    </li>
+</ol>
+
 <button id="pause" onclick="togglePause()">Pause</button>
 <button id="send" onclick="sendToFire()">Send!</button>
-<input type="checkbox" id="pauseOnGesture" onclick="pauseForGestures()">Pause on gesture</input>
-<input type="text" id="input1">Enter ALS</input>
+<p>
+  Set Gesture Label:
+</p>
+<input type="text" id="input1"></input>
 <div id="connection">WebSocket not connected</div>
 <div id="main" style="visibility:hidden">
   <h3>JSON Frame data:</h3>
