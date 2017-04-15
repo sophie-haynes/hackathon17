@@ -26,7 +26,7 @@ firebase.initializeApp(config);
 ///////////////////////////////
 
 var passmeonJSON
-var dbref = firebase.database().ref().child('leapSon');
+var dbref = firebase.database().ref().child('gestures');
 dbref.on('value', snap=> passmeonJSON = snap.val());
 
 var ws;
