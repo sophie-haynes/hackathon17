@@ -12,4 +12,7 @@ In the following 24 hours, we plan to create a service that allows speech impair
   https://github.com/ssaamm/sign-language-tutor 
 ☐ Clarify project plann
 
-
+### Specs
+• Leap motion input
+  • swipe for new word
+  • circle to end
