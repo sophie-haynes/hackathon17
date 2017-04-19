@@ -33,7 +33,8 @@
         var passmeonJSON
         var dbref = firebase.database().ref().child('testSet');
         dbref.on('value', snap => passmeonJSON = snap.val());
-
+        var dbrefUntagged = firebase.database().ref().child('untagged');
+        dbref.on('value', snap => passmeonJSON = snap.val());
         var ws;
         var paused = false;
         var pauseOnGesture = false;
@@ -117,8 +118,8 @@
             }
         }
 
-        function sendToFire() {
-          dbref.push(passmeonJSON);
+        function sendToFire(pathToDB) {
+          pathToDB.push(passmeonJSON);
           alert("posted to the fire!");
           document.getElementById('input1').value = "";
           togglePause();
@@ -134,7 +135,8 @@
         }
 
         function analyseInput(){
-          //togglePause();
+          togglePause();
+          sendToFire(dbrefUntagged);
           currJSON = passmeonJSON;
           //console.log("btipPos: " + JSON.stringify(currJSON.pointables));
 
@@ -191,6 +193,7 @@
           } // End dataset for loop
           console.log("Guessed input: " + bestChar);
           document.getElementById("guess").innerText = "Character computed: " + bestChar;
+        togglePause();
         } //End function
 
 </script>
@@ -221,7 +224,7 @@
             </ol>
 
             <button class="btn btn-primary" id="pause" onclick="togglePause()">Pause</button>
-            <button class="btn btn-primary" id="send" onclick="sendToFire()">Send!</button>
+            <button class="btn btn-primary" id="send" onclick="sendToFire(dbref)">Send!</button>
             <p>Set Gesture Label:</p>
             <input type="text" id="input1"></input>
             <div id="connection">WebSocket not connected</div>
