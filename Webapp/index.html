@@ -31,7 +31,7 @@
         firebase.initializeApp(config);
 
         var passmeonJSON
-        var dbref = firebase.database().ref().child('gestures');
+        var dbref = firebase.database().ref().child('testSet');
         dbref.on('value', snap => passmeonJSON = snap.val());
 
         var ws;
@@ -134,7 +134,7 @@
         }
 
         function analyseInput(){
-          togglePause();
+          //togglePause();
           currJSON = passmeonJSON;
           //console.log("btipPos: " + JSON.stringify(currJSON.pointables));
 
@@ -150,32 +150,37 @@
             console.log("Dataset " + dataSetCount+ ": " + data[key].name );
             if (typeof(data[key].name) != 'undefined'){
               for (i = 0; i < 5; i++){
-
+                
+                //if (currJSON.pointables[i].extended == data[key].pointables[i].extended){
                 //btip xyz
                 currLikeness += Math.abs(currJSON.pointables[i].btipPosition[0] - data[key].pointables[i].btipPosition[0]);
-                currLikeness += Math.abs(currJSON.pointables[i].btipPosition[1] - data[key].pointables[i].btipPosition[1]);
+                currLikeness += Math.abs((currJSON.pointables[i].btipPosition[1] - data[key].pointables[i].btipPosition[1])/10);
                 currLikeness += Math.abs(currJSON.pointables[i].btipPosition[2] - data[key].pointables[i].btipPosition[2]);
 
                 //carp xyz
                 currLikeness += Math.abs(currJSON.pointables[i].carpPosition[0] - data[key].pointables[i].carpPosition[0]);
-                currLikeness += Math.abs(currJSON.pointables[i].carpPosition[1] - data[key].pointables[i].carpPosition[1]);
+                currLikeness += Math.abs((currJSON.pointables[i].carpPosition[1] - data[key].pointables[i].carpPosition[1])/10);
                 currLikeness += Math.abs(currJSON.pointables[i].carpPosition[2] - data[key].pointables[i].carpPosition[2]);
 
                 //dip xyz
                 currLikeness += Math.abs(currJSON.pointables[i].dipPosition[0] - data[key].pointables[i].dipPosition[0]);
-                currLikeness += Math.abs(currJSON.pointables[i].dipPosition[1] - data[key].pointables[i].dipPosition[1]);
+                currLikeness += Math.abs((currJSON.pointables[i].dipPosition[1] - data[key].pointables[i].dipPosition[1])/10);
                 currLikeness += Math.abs(currJSON.pointables[i].dipPosition[2] - data[key].pointables[i].dipPosition[2]);
 
                 //mcp xyz
                 currLikeness += Math.abs(currJSON.pointables[i].mcpPosition[0] - data[key].pointables[i].mcpPosition[0]);
-                currLikeness += Math.abs(currJSON.pointables[i].mcpPosition[1] - data[key].pointables[i].mcpPosition[1]);
+                currLikeness += Math.abs((currJSON.pointables[i].mcpPosition[1] - data[key].pointables[i].mcpPosition[1])/10);
                 currLikeness += Math.abs(currJSON.pointables[i].mcpPosition[2] - data[key].pointables[i].mcpPosition[2]);
 
                 //pip xyz
                 currLikeness += Math.abs(currJSON.pointables[i].pipPosition[0] - data[key].pointables[i].pipPosition[0]);
-                currLikeness += Math.abs(currJSON.pointables[i].pipPosition[1] - data[key].pointables[i].pipPosition[1]);
+                currLikeness += Math.abs((currJSON.pointables[i].pipPosition[1] - data[key].pointables[i].pipPosition[1])/10);
                 currLikeness += Math.abs(currJSON.pointables[i].pipPosition[2] - data[key].pointables[i].pipPosition[2]);
-              } //End finger for loop
+            }//End extended loop
+          /*  else{
+                currLikeness = Number.MAX_SAFE_INTEGER;
+            }
+              } //End finger for loop */
               console.log(currLikeness);
               if (currLikeness < bestLikeness){
                 bestLikeness = currLikeness;
@@ -185,6 +190,7 @@
             } //End Undefined if
           } // End dataset for loop
           console.log("Guessed input: " + bestChar);
+          document.getElementById("guess").innerText = "Character computed: " + bestChar;
         } //End function
 
 </script>
@@ -194,11 +200,10 @@
 <div class="container">
     <div class="row">
         <h1>RGU Hackathon 2017</h1>
-        <p>In 24 hours, we plan to create a service that allows speech impaired individuals to use the voice command service
-            in the amazon echo by using sign language input from the Leap motion controller.</p>
+        <p>In 24 hours, we created a service that translates physical sign language input from the Leap motion controller into text.</p>
         </div>
 
-        <div class="row">
+        <div class="row" style="display:none;">
             <h2>Input - Gesture to Firebase</h2>
             <ol>
                 <li>
@@ -220,6 +225,12 @@
             <p>Set Gesture Label:</p>
             <input type="text" id="input1"></input>
             <div id="connection">WebSocket not connected</div>
+            
+        </div>
+        <div class="row">
+            <h2>Output</h2>
+            <div id="guess" style="font-size: -webkit-xxx-large;"></div>
+            <button class="btn btn-primary" id="get" onclick="analyseInput()">Analyse</button>
             <a class="btn btn-primary" role="button" data-toggle="collapse" href="#collapseExample" aria-expanded="false" aria-controls="collapseExample">Preview</a>
 
             <div class="collapse" id="collapseExample">
@@ -230,13 +241,9 @@
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="row">
-            <h2>Output</h2>
-            <button class="btn btn-primary" id="get" onclick="analyseInput()">Analyse</button>
             <div id="dataOutput"></div>
         </div>
-        <div class="row text-center">
+        <div class="row text-center" style="display:none;">
             <h2>Uncertain Character Choice</h2>
             <div id="option1" class="col-xs-4"></div>
             <div id="option2" class="col-xs-4"></div>
